@@ -1,0 +1,115 @@
+/*
+ * Copyright (c) 2017 Linaro Limited
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <sifli/sf32lb52.dtsi>
+
+/ {
+	model = "SiFli EM-LB525 board";
+	compatible = "sifli,sf32lb525";
+
+	chosen {
+		zephyr,console = &usart1;
+		zephyr,shell-uart = &usart1;
+		zephyr,sram = &sram0;
+		zephyr,flash = &flash2;
+	};
+
+//	leds: leds {
+//		compatible = "gpio-leds";
+//		green_led_2: led_2 {
+//			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+//			label = "User LD2";
+//		};
+//	};
+
+//	gpio_keys {
+//		compatible = "gpio-keys";
+//		user_button: button {
+//			label = "User";
+//			gpios = <&gpioa 13 GPIO_ACTIVE_LOW>;
+//			zephyr,code = <INPUT_KEY_0>;
+//		};
+//	};
+
+	aliases {
+		//led0 = &green_led_2;
+		//sw0 = &user_button;
+		volt-sensor0 = &vref;
+		volt-sensor1 = &vbat;
+	};
+};
+
+
+&flash2 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		ftab_partition: partition@0 {
+			label = "flash-table";
+			reg = <0x00000000 0x0000C000>;
+		};
+
+		boot_partition: partition@3000 {
+			label = "mcuboot";
+			reg = <0x00003000 0x0000D000>;
+		};
+
+		slot0_partition: partition@10000 {
+			label = "image-0";
+			reg = <0x00010000 0x00200000>;
+		};
+
+		slot1_partition: partition@210000 {
+			label = "image-1";
+			reg = <0x00210000 0x00200000>;
+		};
+
+		/*
+		 * The flash starting at 0x000f8000 and ending at
+		 * 0x000fffff is reserved for use by the application.
+		 */
+
+		/*
+		 * Storage partition will be used by FCB/LittleFS/NVS
+		 * if enabled.
+		 */
+		storage_partition: partition@410000 {
+			label = "storage";
+			reg = <0x00410000 0x00008000>;
+		};
+	};
+};
+&clk_rc48k {
+	status = "okay";
+};
+
+&pll {
+	clocks = <&clk_xtal48>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(240)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+};
+
+&usart1 {
+	//pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+	//pinctrl-names = "default";
+	current-speed = <1000000>;
+	status = "okay";
+};
+
+
+

@@ -1,8 +1,10 @@
 name: hal_sifli
 build:
-  cmake-ext: True
-  kconfig-ext: True
+  cmake: .
+  kconfig: Kconfig
   settings:
+    board_root: .
     dts_root: .
-runners: scripts/sfrunner.py
+    soc_root: .
+#runners: scripts/sfrunner.py
   

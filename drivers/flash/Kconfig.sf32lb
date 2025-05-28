@@ -1,0 +1,11 @@
+# Copyright (c) 2025, Qingsong Gou <gouqs@hotmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+config SOC_FLASH_SF32LB
+	bool "SF32LB flash driver"
+	default y
+	depends on FLASH
+	select FLASH_HAS_PAGE_LAYOUT
+	select FLASH_HAS_DRIVER_ENABLED
+	help
+	  Enables SF32LB Flash driver.
