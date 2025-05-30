@@ -1,0 +1,12 @@
+# Copyright (c) 2025, Qingsong Gou <gouqs@hotmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+if FLASH
+
+module = FLASH
+module-str = flash
+source "subsys/logging/Kconfig.template.log_config"
+
+rsource "./Kconfig.*"
+
+endif # FLASH
