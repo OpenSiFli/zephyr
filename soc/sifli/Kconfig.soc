@@ -4,7 +4,7 @@
 
 config SOC_FAMILY_SF32LB
 	bool
-    
+
 config CODE_DATA_RELOCATION_SRAM
     bool
     default y

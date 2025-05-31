@@ -6,7 +6,9 @@
 # Copyright (c) 2022 Tomislav Milkovic
 # SPDX-License-Identifier: Apache-2.0
 
-if SOC_STM32LB525
+if SOC_SF32LB525
 
+config NUM_IRQS
+	default 98
 
-endif # SOC_STM32LB525
+endif # SOC_SF32LB525
