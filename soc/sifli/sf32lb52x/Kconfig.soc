@@ -16,16 +16,19 @@ config SOC_SERIES
 config SOC_SF32LB520
 	bool
 	select SOC_SERIES_SF32LB52X
+
 config SOC_SF32LB523
 	bool
 	select SOC_SERIES_SF32LB52X
+
 config SOC_SF32LB525
 	bool
 	select SOC_SERIES_SF32LB52X
+
 config SOC_SF32LB527
 	bool
 	select SOC_SERIES_SF32LB52X
-    
+
 config SOC
 	default "sf32lb520" if SOC_SF32LB520
 	default "sf32lb523" if SOC_SF32LB523

@@ -1,7 +1,0 @@
-config BSP_USING_BOARD_EH_SS6500XXX
-    bool
-    select SOC_SF32LB52X
-    select BF0_HCPU
-    default y
-
-rsource "../Kconfig.board"
