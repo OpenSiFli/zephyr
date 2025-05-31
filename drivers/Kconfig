@@ -1,6 +1,9 @@
-
+# Coypright (C) 2025, Qingsong Gou <gouqs@hotmail.com>
 # SPDX-License-Identifier: Apache-2.0
 
 menu "Drivers"
-rsource "*/Kconfig"
+
+rsource "gpio/Kconfig"
+rsource "serial/Kconfig"
+
 endmenu
