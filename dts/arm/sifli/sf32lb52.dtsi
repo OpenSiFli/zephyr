@@ -200,6 +200,12 @@
 			};
 		};
 
+		pinctrl: pin-controller@50003000 {
+			compatible = "sifli,sf32lb-pinctrl";
+			reg = <0x50003000 0x400>;
+			status = "okay";
+		};
+
 		gpioa: gpio-controller@500a0000 {
 			compatible = "sifli,gpio";
 			gpio-controller;
@@ -320,6 +326,15 @@
             zephyr,memory-attr = <(DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE))>;
         };
 
+		i2c0: i2c@5009c000 {
+			compatible = "sifli,i2c";
+			reg = <0x5009c000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			clocks = <&rcc RCC_CLK_I2C1>;
+			status = "disabled";
+		};
 		//rng1: rng@4000F000 {
 		//	compatible = "sifli,rng";
 		//	reg = <0x4000F000 0x400>;

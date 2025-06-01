@@ -1,0 +1,55 @@
+# Copyright (c) 2025 Qingsong Gou <gouqs@hotmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: |
+  SiFli SF32LB pin controller Node
+  Based on pincfg-node.yaml binding
+
+  For example, setting pins PA27 and PA20 used as uart would look like this:
+
+    #include <dt-bindings/pinctrl/sflb32-pinctrl.h>
+
+
+    &pinctrl {
+      uart1_default: uart0_default {
+        group1 {
+          pinmux = <SF32LB_PINMUX(PAD_PA27, PA27_I2C_UART)>;
+          output-high;
+        };
+        group2 {
+          pinmux = <SF32LB_PINMUX(PAD_PA20, PA20_I2C_UART)>;
+          input-enable;
+        };
+      };
+
+compatible: "sifli,sf32lb-pinctrl"
+
+include: base.yaml
+
+child-binding:
+  description: |
+    This binding gives a base representation of the SiFli SFLB32 pins
+    configuration.
+  child-binding:
+    description:
+      SiFli SFLB32 pin controller pin configuration group.
+
+    include:
+      - name: pincfg-node.yaml
+        property-allowlist:
+          - bias-disable
+          - bias-pull-down
+          - bias-pull-up
+          - drive-push-pull
+          - drive-open-drain
+          - input-enable
+          - output-enable
+          - output-high
+          - output-low
+
+    properties:
+      pinmux:
+        required: true
+        type: array
+        description: |
+          SiFli SFLB32 pin's configuration (pin, IO function).

@@ -8,6 +8,7 @@
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <sifli/sf32lb52.dtsi>
+#include "em-lb525-pinctrl.dtsi"
 
 / {
 	model = "SiFli EM-LB525 board";
@@ -124,8 +125,15 @@
 };
 
 &usart1 {
-	//pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
+	//pinctrl-0 = <&uart1_default>;
 	//pinctrl-names = "default";
 	current-speed = <1000000>;
 	status = "okay";
 };
+
+&i2c0 {
+	pinctrl-0 = <&i2c0_default>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
