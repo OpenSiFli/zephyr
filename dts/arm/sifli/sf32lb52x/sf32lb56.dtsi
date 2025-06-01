@@ -1,11 +1,8 @@
 /*
- * Copyright (c) 2017 Linaro Limited
- * Copyright (c) 2019 Centaur Analytics, Inc
- * Copyright (c) 2024 STMicroelectronics
+ * SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 
 #include <arm/armv8-m.dtsi>
 #include <zephyr/dt-bindings/i2c/i2c.h>
@@ -17,7 +14,7 @@
 
 #define SF32LB_CLOCK(a,b)
 #define SF32LB_RESET(a,b)
-#define SF32LB_SRC_MSI 
+#define SF32LB_SRC_MSI
 #define CLK48_SEL(a)
 
 / {
@@ -124,7 +121,7 @@
 				compatible = "sifli,nv-flash", "soc-nv-flash";
                 reg = <0x14000000 0x1000000>;
 				write-block-size = <8>;
-				erase-block-size = <4096>;				
+				erase-block-size = <4096>;
 			};
 		};
 		mpi5: flash-controller@50081000 {
@@ -150,14 +147,14 @@
                     slot0_partition: partition@9000 {
                         label = "image-0";
                         reg = <0x00009000 DT_SIZE_K(28)>;
-                    };     
+                    };
                     slot1_partition: partition@10000 {
                         label = "image-1";
                         reg = <0x00090000 DT_SIZE_K(960)>;
-                    };                      
-                };                
+                    };
+                };
 			};
-		};        
+		};
 		rcc: rcc@40000000 {
 			compatible = "sifli,rcc";
 			#clock-cells = <2>;

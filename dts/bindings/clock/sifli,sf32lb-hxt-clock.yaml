@@ -3,7 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+description: SF32LB HXT Clock
 
-zephyr_library_amend()
+compatible: "sifli,sf32lb-hxt-clock"
 
-zephyr_library_sources_ifdef(CONFIG_GPIO_SF32LB     gpio_sf32lb.c)
+include: [fixed-clock.yaml]

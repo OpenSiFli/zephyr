@@ -11,6 +11,9 @@ properties:
   interrupts:
     required: true
 
+  clocks:
+    required: true
+
   current-speed:
     description: |
       Initial baud rate setting for UART. Defaults to standard baudrate of 115200 if not specified.

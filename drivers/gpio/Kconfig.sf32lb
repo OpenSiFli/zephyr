@@ -1,11 +1,12 @@
-# Copyright (c) 2025 Qingsong Gou <gouqs@hotmail.com>
+#
+# SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
 #
 # SPDX-License-Identifier: Apache-2.0
+
 
 config GPIO_SF32LB
 	bool "GPIO driver for SF32LB family of MCUs"
 	default y
-	depends on GPIO
-	depends on DT_HAS_SIFLI_GPIO_ENABLED
+	depends on DT_HAS_SIFLI_SF32LB_GPIO_ENABLED
 	help
 	  Enable GPIO driver for SF32LB series of MCUs

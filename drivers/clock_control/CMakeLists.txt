@@ -6,4 +6,4 @@
 
 zephyr_library_amend()
 
-zephyr_library_sources_ifdef(CONFIG_GPIO_SF32LB     gpio_sf32lb.c)
+zephyr_library_sources_ifdef(CONFIG_CLOCK_CONTROL_SF32LB clock_control_sf32lb.c)

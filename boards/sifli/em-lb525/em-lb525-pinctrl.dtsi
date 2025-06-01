@@ -1,0 +1,12 @@
+#include <dt-bindings/pinctrl/sf32lb-pinctrl.h>
+
+&pinctrl {
+    uart1_default: uart1_default {
+        group1 {
+            pinmux = <SF32LB_PINMUX(PIN_PAD_PA27, FUNC_PA27_I2C_UART)>;
+        };
+        group2 {
+            pinmux = <SF32LB_PINMUX(PIN_PAD_PA20, FUNC_PA20_I2C_UART)>;
+        };
+    };
+};

@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT sifli_uart
 
 #include <zephyr/kernel.h>
 #include <zephyr/arch/cpu.h>
@@ -13,19 +14,21 @@
 #include <soc.h>
 #include <zephyr/init.h>
 #include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-#define DT_DRV_COMPAT sifli_uart
+#include <zephyr/drivers/clock_control.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/logging/log.h>
+
 #include <zephyr/sys/__assert.h>
 #include <zephyr/sys/byteorder.h>
 #include <bf0_hal.h>
 
+LOG_MODULE_REGISTER(uart_sf32lb, CONFIG_UART_LOG_LEVEL);
 
 // Driver data structure
 struct uart_sf32lb_data {
     uint32_t base_addr;
     UART_HandleTypeDef handle;
-    
+
     struct
     {
         DMA_HandleTypeDef handle;
@@ -37,22 +40,23 @@ struct uart_sf32lb_data {
         int last_index;
     } dma_tx;
 	struct k_work_delayable tx_timeout_work;
-	struct k_work_delayable rx_timeout_work;    
+	struct k_work_delayable rx_timeout_work;
     struct uart_config uart_cfg;
     uart_callback_t callback;
-    void *          user_data;    
+    void *          user_data;
 };
 
 // Driver configuration structure
 struct uart_sf32lb_config {
     void (*irq_config_func)(const struct device * dev);
-    
+    const struct device *clock_dev;
+    const clock_control_subsys_t clock_subsys;
 };
 
 static int sifli_configure(const struct device *dev)
 {
     struct uart_sf32lb_data *uart = dev->data;
-    
+
     if (uart->uart_cfg.parity!=UART_CFG_PARITY_NONE && uart->uart_cfg.data_bits < UART_CFG_DATA_BITS_9)
         uart->uart_cfg.data_bits++;                           // parity is part of data
 
@@ -144,7 +148,7 @@ static const struct uart_driver_api uart_sf32lb_api = {
 	.rx_disable =uart_sf32lb_rx_disable,
     .tx = uart_sf32lb_tx,
 	.tx_abort = uart_sf32lb_tx_abort,
-#endif    
+#endif
 };
 
 #ifdef CONFIG_UART_ASYNC_API
@@ -159,7 +163,7 @@ static int uart_sf32lb_rx_enable(const struct device *dev, uint8_t *buf, size_t 
     __HAL_LINKDMA(&(uart->handle), hdmarx, uart->dma_rx.handle);
     uart->handle.hdmarx->Instance = uart->config->dma_rx->Instance;
     uart->handle.hdmarx->Init.Request = uart->config->dma_rx->request;
-    irq = uart->config->dma_rx->dma_irq;    
+    irq = uart->config->dma_rx->dma_irq;
 #ifndef DMA_SUPPORT_DYN_CHANNEL_ALLOC
     HAL_NVIC_SetPriority(irq, 0, 0);
     HAL_NVIC_EnableIRQ(irq);
@@ -170,7 +174,7 @@ static int uart_sf32lb_rx_enable(const struct device *dev, uint8_t *buf, size_t 
         HAL_NVIC_SetPriority(uart->config->irq_type, 1, 0);
         HAL_NVIC_EnableIRQ(uart->config->irq_type);
     }
-    HAL_UART_DmaTransmit(&(uart->handle), buf, len, (direction == RT_SERIAL_DMA_RX) ? DMA_PERIPH_TO_MEMORY : DMA_MEMORY_TO_PERIPH);    
+    HAL_UART_DmaTransmit(&(uart->handle), buf, len, (direction == RT_SERIAL_DMA_RX) ? DMA_PERIPH_TO_MEMORY : DMA_MEMORY_TO_PERIPH);
 }
 
 static int uart_sf32lb_rx_buf_rsp(const struct device *dev, uint8_t *buf, size_t len)
@@ -187,13 +191,23 @@ static int uart_sf32lb_init(const struct device *dev)
 {
     struct uart_sf32lb_data *uart = dev->data;
     const struct uart_sf32lb_config *config = dev->config;
+    int ret;
+    enum clock_control_status status;
+
+    status = clock_control_get_status(config->clock_dev, config->clock_subsys);
+    LOG_INF("UART clock status: %d", status);
+
+    ret = clock_control_on(config->clock_dev, config->clock_subsys);
+    if (ret < 0) {
+        return ret;
+    }
 
     // Initialize driver - specific data
     uart->handle.Instance          = (USART_TypeDef *)uart->base_addr;
     uart->handle.Init.BaudRate     = uart->uart_cfg.baudrate;
     uart->handle.Init.Mode         = UART_MODE_TX_RX;
     uart->handle.Init.OverSampling = UART_OVERSAMPLING_16;
-    
+
 	  config->irq_config_func(dev);
     sifli_configure(dev);
     return 0;
@@ -202,7 +216,7 @@ static int uart_sf32lb_init(const struct device *dev)
 // Poll - based receive function
 static int uart_sf32lb_poll_in(const struct device *dev, uint8_t *c)
 {
-    struct uart_sf32lb_data *uart = dev->data;    
+    struct uart_sf32lb_data *uart = dev->data;
     if (__HAL_UART_GET_FLAG(&(uart->handle), UART_FLAG_RXNE) != RESET) {
         *c = (uint8_t)__HAL_UART_GETC(&uart->handle);
         return 0;
@@ -214,10 +228,10 @@ static int uart_sf32lb_poll_in(const struct device *dev, uint8_t *c)
 static void uart_sf32lb_poll_out(const struct device *dev, uint8_t c)
 {
     struct uart_sf32lb_data *data = dev->data;
-    
+
     __HAL_UART_CLEAR_FLAG(&(data->handle), UART_FLAG_TC);
     __HAL_UART_PUTC(&data->handle, c);
-    while (__HAL_UART_GET_FLAG(&(data->handle), UART_FLAG_TC) == RESET);    
+    while (__HAL_UART_GET_FLAG(&(data->handle), UART_FLAG_TC) == RESET);
 }
 
 // Configure the UART function
@@ -227,7 +241,7 @@ static int uart_sf32lb_configure(const struct device *dev, const struct uart_con
 
     // Update the configuration
     memcpy(&(uart->uart_cfg),cfg, sizeof(struct uart_config));
-    sifli_configure(dev);    
+    sifli_configure(dev);
     return 0;
 }
 
@@ -321,7 +335,7 @@ static void uart_sf32lb_isr(const struct device *dev)
 
 #define SF32LB_UART_IRQ_HANDLER_DECL(index)				\
 	static void uart_sf32lb_irq_config_func_##index(const struct device *dev);
-    
+
 #define SF32LB_UART_IRQ_HANDLER(index)					\
 static void uart_sf32lb_irq_config_func_##index(const struct device *dev)	\
 {									\
@@ -347,7 +361,9 @@ static const struct uart_config uart_cfg_##index = {				\
 };\
 \
 static const struct uart_sf32lb_config uart_sf32lb_cfg_##index = {	\
-	SF32LB_UART_IRQ_HANDLER_FUNC(index)				\
+	SF32LB_UART_IRQ_HANDLER_FUNC(index) \
+    .clock_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(index)), \
+    .clock_subsys = (clock_control_subsys_t)DT_INST_CLOCKS_CELL(index, id), \
 };									\
 \
 static struct uart_sf32lb_data uart_sf32lb_data_##index = {	\
@@ -365,4 +381,3 @@ DEVICE_DT_INST_DEFINE(index,						                \
 SF32LB_UART_IRQ_HANDLER(index)						                \
 
 DT_INST_FOREACH_STATUS_OKAY(SF32LB_UART_INIT)
-                 

@@ -3,14 +3,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+if PINCTRL
 
-
-if GPIO
-
-module = GPIO
-module-str = gpio
+module = PINCTRL
+module-str = PINCTRL
 source "subsys/logging/Kconfig.template.log_config"
 
 rsource "./Kconfig.*"
 
-endif # GPIO
+endif # PINCTRL

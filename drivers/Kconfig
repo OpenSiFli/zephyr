@@ -1,9 +1,14 @@
-# Coypright (C) 2025, Qingsong Gou <gouqs@hotmail.com>
+#
+# SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
+#
 # SPDX-License-Identifier: Apache-2.0
+
 
 menu "Drivers"
 
+rsource "clock_control/Kconfig"
 rsource "gpio/Kconfig"
+rsource "pinctrl/Kconfig"
 rsource "serial/Kconfig"
 
 endmenu

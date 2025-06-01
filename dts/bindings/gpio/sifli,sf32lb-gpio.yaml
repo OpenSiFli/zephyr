@@ -1,0 +1,24 @@
+#
+# SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
+#
+# SPDX-License-Identifier: Apache-2.0
+
+description: SiFli GPIO controller
+
+compatible: "sifli,sf32lb-gpio"
+
+include: [gpio-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true
+
+  "#gpio-cells":
+    const: 2
+
+gpio-cells:
+  - pin
+  - flags

@@ -22,7 +22,7 @@
 	chosen {
 		//zephyr,entropy = &rng1;
 		zephyr,flash-controller = &flash2;
-        zephyr,bt-hci = &mbox;
+		zephyr,bt-hci = &mbox;
 	};
 
 	cpus {
@@ -170,6 +170,7 @@
 				reg = <0x10000000 0x800000>;
 			};
 		};
+
 		mpi2: flash-controller@50042000 {
 			compatible = "sifli,mpi-controller", "sifli,sf32lb-flash-controller";
 			reg = <0x50042000 0x1000>;
@@ -185,8 +186,9 @@
 				erase-block-size = <4096>;
 			};
 		};
+
 		rcc: rcc@50000000 {
-			compatible = "sifli,sf32lb-rcc";
+			compatible = "sifli,rcc";
 			#clock-cells = <1>;
 			reg = <0x50000000 0x1000>;
 			status = "disabled";
@@ -204,12 +206,58 @@
 		};
 
 		gpioa: gpio-controller@500a0000 {
-			compatible = "sifli,sf32lb-gpio";
+			compatible = "sifli,gpio";
 			gpio-controller;
 			#gpio-cells = <2>;
 			reg = <0x500a0000 0x2000>;
 			clocks = <&rcc RCC_CLK_GPIO1>;
 			interrupts = <84 0>;
+			status = "disabled";
+		};
+
+		gpiob: gpio-controller@40080000 {
+			compatible = "sifli,gpio";
+			gpio-controller;
+			#gpio-cells = <2>;
+			reg = <0x40080000 0x2000>;
+			clocks = <&rcc RCC_CLK_GPIO1>;
+			interrupts = <84 0>;
+			status = "disabled";
+		};
+/*
+		adc1: adc@500a4000 {
+			compatible = "sifli,adc";
+			reg = <0x500a4000 0x1000>;
+			clocks = <&rcc RCC_CLK_ADC1>;
+			interrupts = <85 0>;
+			status = "disabled";
+
+			#io-channels-cells = <2>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			io-channel@17 {
+				reg = <17>;
+				sifli,adc-channel-name = "vref";
+				sifli,adc-channel-type = "vrefint";
+				sifli,adc-channel-sampling-time = <ADC_SAMPLING_TIME_640_CYCLES>;
+			};
+
+			io-channel@18 {
+				reg = <18>;
+				sifli,adc-channel-name = "vbat";
+				sifli,adc-channel-type = "vbat";
+				sifli,adc-channel-sampling-time = <ADC_SAMPLING_TIME_640_CYCLES>;
+			};
+		};
+*/
+		spi1: spi@50088000 {
+			compatible = "sifli,spi";
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x50088000 0x400>;
+			clocks = <&rcc RCC_CLK_SPI1>;
+			interrupts = <60 0>;
 			status = "disabled";
 		};
 
@@ -231,16 +279,16 @@
 			status = "disabled";
 		};
 
-		gptimer1: timers@50090000 {
-			compatible = "sifli,timers";
+		gptim1: timers@50090000 {
+			compatible = "sifli,sf32lb-gpt-timer";
 			reg = <0x50090000 0x400>;
 			clocks = <&rcc RCC_CLK_GPTIM1>;
 			//resets = <&rctl SF32LB_RESET(APB2, 11U)>;
 			interrupts = <70 0>, <25 0>, <26 0>, <27 0>;
 			interrupt-names = "brk", "up", "trgcom", "cc";
-			sifli,prescaler = <0>;
+			prescaler = <0>;
 			status = "disabled";
-
+/*
 			pwm {
 				compatible = "sifli,pwm";
 				status = "disabled";
@@ -249,6 +297,23 @@
 			counter {
 				compatible = "sifli,counter";
 				status = "disabled";
+			};
+*/
+		};
+
+		gptim2: timers@500b0000 {
+			compatible = "sifli,sf32lb-gpt-timer";
+			reg = <0x500b0000 0x400>;
+			clocks = <&rcc RCC_CLK_GPTIM2>;
+			interrupts = <70 0>, <25 0>, <26 0>, <27 0>;
+			interrupt-names = "brk", "up", "trgcom", "cc";
+			prescaler = <0>;
+			status = "disabled";
+
+			pwm {
+				compatible = "sifli,pwm";
+				status = "disabled";
+				#pwm-cells = <3>;
 			};
 		};
 
@@ -298,30 +363,39 @@
 			tx-high-power-supported;
 		};
 
-        mbox: mbox@50082000 {
-            compatible = "sifli,bt-mbox";
-            reg = <0x50082000 0x1000>;
-            interrupts = <58 1>;
-            status = "okay";
-        };
+		lcdc: lcdc@50008000 {
+			compatible = "sifli,sf32lb-mipi-dbi";
+			reg = <0x50008000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clocks = <&rcc RCC_CLK_LCDC1>;
+			status = "disabled";
+		};
 
-        sram0_shared: memory@2007fc00 {
-            /* Last 1 kB of sram0 */
-       		compatible = "zephyr,memory-region", "mmio-sram";
-            reg = <0x2007fc00 DT_SIZE_K(1)>;
-            device_type = "memory";
-            zephyr,memory-region = "sram0_shared";
-            zephyr,memory-attr = <(DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE))>;
-        };
+		mbox: mbox@50082000 {
+			compatible = "sifli,bt-mbox";
+			reg = <0x50082000 0x1000>;
+			interrupts = <58 1>;
+			status = "okay";
+		};
 
-        sram1_shared: memory@20400000 {
-            /* Last 1 kB of sram0 */
-       		compatible = "zephyr,memory-region", "mmio-sram";
-            reg = <0x20400000 DT_SIZE_K(64)>;
-            device_type = "memory";
-            zephyr,memory-region = "sram1_shared";
-            zephyr,memory-attr = <(DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE))>;
-        };
+		sram0_shared: memory@2007fc00 {
+			/* Last 1 kB of sram0 */
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x2007fc00 DT_SIZE_K(1)>;
+			device_type = "memory";
+			zephyr,memory-region = "sram0_shared";
+			zephyr,memory-attr = <(DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE))>;
+		};
+
+		sram1_shared: memory@20400000 {
+			/* Last 1 kB of sram0 */
+			compatible = "zephyr,memory-region", "mmio-sram";
+			reg = <0x20400000 DT_SIZE_K(64)>;
+			device_type = "memory";
+			zephyr,memory-region = "sram1_shared";
+			zephyr,memory-attr = <(DT_MEM_ARM(ATTR_MPU_RAM_NOCACHE))>;
+		};
 
 		i2c0: i2c@5009c000 {
 			compatible = "sifli,i2c";
@@ -332,50 +406,29 @@
 			clocks = <&rcc RCC_CLK_I2C1>;
 			status = "disabled";
 		};
-		//rng1: rng@4000F000 {
-		//	compatible = "sifli,rng";
-		//	reg = <0x4000F000 0x400>;
-		//	interrupts = <80 0>;
+
+		rng: rng@4000f000 {
+			compatible = "sifli,rng";
+			reg = <0x4000F000 0x400>;
+			interrupts = <80 0>;
 			//clocks = <&rcc SF32LB_CLOCK(AHB2, 18U)>,
-				/* Following domain clock setting requires MSI
-				 * clock to be enabled with msi-range = <11>;
-				 */
-            //<&rcc SF32LB_SRC_MSI CLK48_SEL(3)>;
-		//	status = "disabled";
-		//};
+			status = "disabled";
+		};
 
-		//pmuc: power@5004A000 {
-		//	compatible = "sifli,pmuc";
-		//	reg = <0x5004A000 0x400>; /* PWR register bank */
-		//	status = "disabled";
+		rtc: rtc@500cb000 {
+			compatible = "sifli,rtc";
+			reg = <0x500cb000 0x400>;
+			interrupts = <47 1>;
+			status = "disabled";
+		};
 
-		//	wkup-pins-nb = <5>; /* 5 system wake-up pins */
-		//	wkup-pins-pol;
-		//	wkup-pins-pupd;
+		usbd: usbd@50047000 {
+			compatible = "sifli,usb";
+			reg = <0x50047000 0x400>;
+			num-bidir-endpoints = <8>;
+			status = "disabled";
+		};
 
-		//	#address-cells = <1>;
-		//	#size-cells = <0>;
-
-		//	wkup-pin@1 {
-		//		reg = <0x1>;
-		//	};
-
-		//	wkup-pin@2 {
-		//		reg = <0x2>;
-		//	};
-
-		//	wkup-pin@3 {
-		//		reg = <0x3>;
-		//	};
-
-		//	wkup-pin@4 {
-		//		reg = <0x4>;
-		//	};
-
-		//	wkup-pin@5 {
-		//		reg = <0x5>;
-		//	};
-		//};
 	};
   	vref: vref {
 		compatible = "sifli,vref";
