@@ -1,0 +1,5 @@
+description: SiFli SF32LB Clock Controller
+
+compatible: "sifli,pll-clock"
+
+include: base.yaml

@@ -1,0 +1,35 @@
+description: SiFli SF32LB Reset and Clock Control (RCC)
+
+compatible: "sifli,rcc"
+
+include: [clock-controller.yaml, base.yaml]
+
+properties:
+  reg:
+    required: true
+    description: RCC register map
+
+  clock-frequency:
+    required: true
+    type: int
+
+  ahb-prescaler:
+    required: true
+    type: int
+
+  apb1-prescaler:
+    required: true
+    type: int
+
+  apb2-prescaler:
+    required: true
+    type: int
+
+  "#clock-cells":
+    const: 1
+    description: |
+      Number of cells in a clock specifier. Must be 1. The cell is the clock
+      subsystem identifier.
+
+clock-cells:
+  - id

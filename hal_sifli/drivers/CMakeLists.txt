@@ -9,8 +9,6 @@ zephyr_include_directories(cmsis/Include)
 zephyr_include_directories(cmsis/sf32lb52x)
 zephyr_include_directories_ifdef(CONFIG_SOC_SERIES_SF32LB52X cmsis/sf32lb52x)
 
-zephyr_compile_definitions_ifdef(CONFIG_PINCTRL_SF32LB HAL_PINMUX_MODULE_ENABLED)
-
 zephyr_library()
 
 zephyr_library_sources(hal/bf0_hal.c)
@@ -44,4 +42,3 @@ if (CONFIG_SOC_SERIES_SF32LB52X)
 #	zephyr_library_sources(cmsis/sf32lb52x/lcpu_patch_rev_b.c)
 #    zephyr_code_relocate(FILES cmsis/sf32lb52x/bf0_pin_const.c LOCATION RAM NOKEEP)
 endif()
-

@@ -3,7 +3,9 @@
 
 menu "Drivers"
 
+rsource "clock_control/Kconfig"
 rsource "gpio/Kconfig"
+
 rsource "serial/Kconfig"
 
 endmenu

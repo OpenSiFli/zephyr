@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#define DT_DRV_COMPAT sifli_uart
 
 #include <zephyr/kernel.h>
 #include <zephyr/arch/cpu.h>
@@ -13,8 +14,8 @@
 #include <soc.h>
 #include <zephyr/init.h>
 #include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-#define DT_DRV_COMPAT sifli_uart
+#include <zephyr/drivers/clock_control.h>
+
 #include <zephyr/drivers/uart.h>
 #include <zephyr/sys/__assert.h>
 #include <zephyr/sys/byteorder.h>
@@ -46,7 +47,8 @@ struct uart_sf32lb_data {
 // Driver configuration structure
 struct uart_sf32lb_config {
     void (*irq_config_func)(const struct device * dev);
-    
+    const struct device *clock_dev;
+    const clock_control_subsys_t clock_subsys;
 };
 
 static int sifli_configure(const struct device *dev)
@@ -187,6 +189,12 @@ static int uart_sf32lb_init(const struct device *dev)
 {
     struct uart_sf32lb_data *uart = dev->data;
     const struct uart_sf32lb_config *config = dev->config;
+    int ret;
+
+    ret = clock_control_on(config->clock_dev, config->clock_subsys);
+    if (ret < 0) {
+        return ret;
+    }
 
     // Initialize driver - specific data
     uart->handle.Instance          = (USART_TypeDef *)uart->base_addr;
@@ -347,7 +355,9 @@ static const struct uart_config uart_cfg_##index = {				\
 };\
 \
 static const struct uart_sf32lb_config uart_sf32lb_cfg_##index = {	\
-	SF32LB_UART_IRQ_HANDLER_FUNC(index)				\
+	SF32LB_UART_IRQ_HANDLER_FUNC(index) \
+    .clock_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(index)), \
+    .clock_subsys = (clock_control_subsys_t)DT_INST_CLOCKS_CELL(index, id), \
 };									\
 \
 static struct uart_sf32lb_data uart_sf32lb_data_##index = {	\

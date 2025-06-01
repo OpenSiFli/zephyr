@@ -28,23 +28,58 @@
 //		};
 //	};
 
-//	gpio_keys {
-//		compatible = "gpio-keys";
-//		user_button: button {
-//			label = "User";
-//			gpios = <&gpioa 13 GPIO_ACTIVE_LOW>;
-//			zephyr,code = <INPUT_KEY_0>;
-//		};
-//	};
+	gpio_keys {
+		compatible = "gpio-keys";
+		user_button: button {
+			label = "User";
+			gpios = <&gpioa 11 GPIO_ACTIVE_HIGH>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
 
 	aliases {
 		//led0 = &green_led_2;
-		//sw0 = &user_button;
+		sw0 = &user_button;
 		volt-sensor0 = &vref;
 		volt-sensor1 = &vbat;
 	};
 };
 
+&clk_hxt48m {
+	clock-frequency = <DT_FREQ_M(48)>;
+	status = "okay";
+};
+
+&clk_sys {
+	//clocks = <&clk_dll1>;
+	hdiv = <1>;
+	pdiv1 = <1>;
+	pdiv2 = <6>;
+	status = "okay";
+};
+
+&clk_peri {
+	clocks = <&clk_hxt48m>;
+	status = "okay";
+};
+
+&pll {
+	clocks = <&clk_hxt48m>;
+	status = "okay";
+};
+
+&rcc {
+	clocks = <&pll>;
+	clock-frequency = <DT_FREQ_M(240)>;
+	ahb-prescaler = <1>;
+	apb1-prescaler = <1>;
+	apb2-prescaler = <1>;
+	status = "okay";
+};
+
+&gpioa {
+	status = "okay";
+};
 
 &flash2 {
 	partitions {
@@ -87,22 +122,6 @@
 		};
 	};
 };
-&clk_rc48k {
-	status = "okay";
-};
-
-&pll {
-	clocks = <&clk_xtal48>;
-	status = "okay";
-};
-
-&rcc {
-	clocks = <&pll>;
-	clock-frequency = <DT_FREQ_M(240)>;
-	ahb-prescaler = <1>;
-	apb1-prescaler = <1>;
-	apb2-prescaler = <1>;
-};
 
 &usart1 {
 	//pinctrl-0 = <&usart1_tx_pa9 &usart1_rx_pa10>;
@@ -110,6 +129,3 @@
 	current-speed = <1000000>;
 	status = "okay";
 };
-
-
-

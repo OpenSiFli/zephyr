@@ -1,0 +1,22 @@
+# Copyright (c) Qingsong Gou <gouqs@hotmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+description: SF32LB Sys Clock
+
+compatible: "sifli,sys-clock"
+
+properties:
+  hdiv:
+    type: int
+    required: true
+    description: xxxx
+
+  pdiv1:
+    type: int
+    required: true
+    description: xxxx
+
+  pdiv2:
+    type: int
+    required: true
+    description: xxxx

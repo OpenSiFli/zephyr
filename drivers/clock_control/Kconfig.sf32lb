@@ -1,0 +1,23 @@
+config CLOCK_CONTROL_SF32LB
+	bool "SF32LB Clock Control"
+	default y
+	depends on CLOCK_CONTROL
+	depends on DT_HAS_SIFLI_RCC_ENABLED
+	help
+	  Enable support for SF32LB clock control driver.
+
+config SF32LB_CLOCK_HSE_FREQ
+	int "HSE clock frequency"
+	default 32000000
+	depends on CLOCK_CONTROL_SF32LB
+	help
+	  HSE clock frequency in Hz. This is the external high-speed
+	  oscillator frequency.
+
+config SF32LB_CLOCK_HSI_FREQ
+	int "HSI clock frequency"
+	default 16000000
+	depends on CLOCK_CONTROL_SF32LB
+	help
+	  HSI clock frequency in Hz. This is the internal high-speed
+	  oscillator frequency.

@@ -1,0 +1,12 @@
+# Copyright (c) 2025, Qingsong Gou@<hotmail.com>
+# SPDX-License-Identifier: Apache-2.0
+
+if CLOCK_CONTROL
+
+module = CLOCK_CONTROL
+module-str = clock control
+source "subsys/logging/Kconfig.template.log_config"
+
+rsource "./Kconfig.*"
+
+endif # CLOCK_CONTROL
