@@ -1,3 +1,0 @@
-menuconfig VIBRATOR_ENABLED
-    bool "Vibrator"
-    default n

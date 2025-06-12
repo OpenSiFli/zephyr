@@ -1,15 +1,13 @@
-# SiFli 52X
+# SiFli SF32LB52X
 
 # Copyright (c) 2016 Open-RnD Sp. z o.o.
 # Copyright (c) 2016 BayLibre, SAS
 # SPDX-License-Identifier: Apache-2.0
 
-# Kconfig symbols common to SF32LB56X series
+# Kconfig symbols common to SF32LB52X series
 
 if SOC_SERIES_SF32LB52X
 
 rsource "Kconfig.defconfig.sf32lb52*"
-config SERIAL_HAS_DRIVER
-	default y
-	
-endif # SOC_SERIES_SF32LB56X
+
+endif # SOC_SERIES_SF32LB52X

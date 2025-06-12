@@ -1,1 +1,0 @@
-%SIFLI_SDK%tools\menuconfig\dist\kconfig --handwritten-input-configs Kconfig .config config.h kconfiglist board.conf
