@@ -18,15 +18,9 @@ LOG_MODULE_REGISTER(pinctrl_sflb32, CONFIG_PINCTRL_LOG_LEVEL);
 
 static int pinctrl_configure_pin(uint32_t pinmux, uint32_t pincfg)
 {
-	UNUSED(pincfg);
 	int flags = 0;
 	uint32_t pad = SFLB32_GET_PAD(pinmux);
 	uint32_t func = SFLB32_GET_FUNC(pinmux);
-	if (pincfg & BIT(SF32LB_INPUT_ENABLE_POS)) {
-		//flags |= HAL_PIN_FLAG_INPUT;
-	} else if (pincfg & BIT(SF32LB_OUTPUT_ENABLE_POS)) {
-		//flags |= HAL_PIN_FLAG_INPUT_OUTPUT;
-	}
 
 	if (pincfg & BIT(SF32LB_BIAS_PULL_UP_POS)) {
 		flags |= PIN_PULLUP;

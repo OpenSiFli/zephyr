@@ -7,7 +7,7 @@
 /dts-v1/;
 #include <zephyr/dt-bindings/input/input-event-codes.h>
 #include <zephyr/dt-bindings/gpio/gpio.h>
-#include <sifli/sf32lb52.dtsi>
+#include <sifli/sf32lb52x/sf32lb52x.dtsi>
 #include "em-lb525-pinctrl.dtsi"
 
 / {
@@ -108,15 +108,6 @@
 			reg = <0x00210000 0x00200000>;
 		};
 
-		/*
-		 * The flash starting at 0x000f8000 and ending at
-		 * 0x000fffff is reserved for use by the application.
-		 */
-
-		/*
-		 * Storage partition will be used by FCB/LittleFS/NVS
-		 * if enabled.
-		 */
 		storage_partition: partition@410000 {
 			label = "storage";
 			reg = <0x00410000 0x00008000>;
@@ -130,4 +121,3 @@
 	current-speed = <1000000>;
 	status = "okay";
 };
-
