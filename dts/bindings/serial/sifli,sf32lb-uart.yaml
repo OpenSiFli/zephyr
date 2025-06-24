@@ -1,8 +1,8 @@
-description: SiFli USART UART
+description: SiFli SF32LB USART UART
 
-compatible: "sifli,uart"
+compatible: "sifli,sf32lb-uart"
 
-include: [uart-controller.yaml]
+include: [uart-controller.yaml, pinctrl-device.yaml]
 
 properties:
   reg:
@@ -14,9 +14,15 @@ properties:
   clocks:
     required: true
 
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
   current-speed:
     description: |
-      Initial baud rate setting for UART. Defaults to standard baudrate of 115200 if not specified.
+      Initial baud rate setting for UART. Defaults to baudrate of 1000000 if not specified.
     default: 1000000
 
   stop-bits:
