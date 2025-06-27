@@ -1,0 +1,7 @@
+config ENTROPY_SF32LB
+	bool "SF32LB Entropy driver"
+	default y
+	depends on DT_HAS_SIFLI_SF32LB_RNG_ENABLED
+	select ENTROPY_HAS_DRIVER
+	help
+	  Enable driver for SF32LB True Random Number Generator (TRNG).
