@@ -6,5 +6,8 @@ build:
     board_root: .
     dts_root: .
     soc_root: .
-#runners: scripts/sfrunner.py
+
+runners:
+  - file: scripts/sftool.py
+
   
