@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Linaro Limited
+ * Copyright (c) 2025 Qingsong Gou <gouqs@hotmail.com>
  *
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -52,7 +52,6 @@
 };
 
 &clk_sys {
-	//clocks = <&clk_dll1>;
 	hdiv = <1>;
 	pdiv1 = <1>;
 	pdiv2 = <6>;
@@ -116,8 +115,8 @@
 };
 
 &usart1 {
-	//pinctrl-0 = <&uart1_default>;
-	//pinctrl-names = "default";
+	pinctrl-0 = <&uart1_default>;
+	pinctrl-names = "default";
 	current-speed = <1000000>;
 	status = "okay";
 };
