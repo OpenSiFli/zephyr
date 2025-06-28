@@ -19,15 +19,16 @@
 		zephyr,shell-uart = &usart1;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash2;
+		zephyr,entropy = &rng;
 	};
 
-//	leds: leds {
-//		compatible = "gpio-leds";
-//		green_led_2: led_2 {
-//			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
-//			label = "User LD2";
-//		};
-//	};
+//        leds: leds {
+//                compatible = "gpio-leds";
+//                green_led_2: led_2 {
+//                        gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
+//                        label = "User LD2";
+//                };
+//        };
 
 	gpio_keys {
 		compatible = "gpio-keys";
@@ -119,5 +120,9 @@
 	//pinctrl-0 = <&uart1_default>;
 	//pinctrl-names = "default";
 	current-speed = <1000000>;
+	status = "okay";
+};
+
+&rng {
 	status = "okay";
 };
