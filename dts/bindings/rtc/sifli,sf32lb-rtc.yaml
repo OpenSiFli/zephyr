@@ -1,0 +1,12 @@
+description: SiFli SF32LB RTC controller
+
+compatible: "sifli,sf32lb-rtc"
+
+include: base.yaml
+
+properties:
+  reg:
+    required: true
+
+  interrupts:
+    required: true

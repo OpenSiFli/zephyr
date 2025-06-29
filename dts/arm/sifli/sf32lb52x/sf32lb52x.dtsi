@@ -300,6 +300,13 @@
 			tx-high-power-supported;
 		};
 
+		rtc: rtc@500cb000 {
+			compatible = "sifli,sf32lb-rtc";
+			reg = <0x500cb000 0x400>;
+			interrupts = <49 1>;
+			status = "disabled";
+		};
+
         mbox: mbox@50082000 {
             compatible = "sifli,bt-mbox";
             reg = <0x50082000 0x1000>;

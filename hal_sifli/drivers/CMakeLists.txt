@@ -22,6 +22,7 @@ zephyr_library_sources_ifdef(CONFIG_GPIO_SF32LB hal/bf0_hal_gpio.c)
 zephyr_library_sources_ifdef(CONFIG_UART_SF32LB hal/bf0_hal_uart.c)
 zephyr_library_sources_ifdef(CONFIG_I2C_SF32LB hal/bf0_hal_i2c.c)
 zephyr_library_sources_ifdef(CONFIG_PINCTRL_SF32LB hal/bf0_hal_pinmux.c)
+zephyr_library_sources_ifdef(CONFIG_RTC_SF32LB hal/bf0_hal_rtc.c)
 
 ## Add 56x specific code
 #if (CONFIG_SOC_SERIES_SF32LB56X)
