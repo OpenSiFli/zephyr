@@ -43,6 +43,7 @@
 		sw0 = &user_button;
 		volt-sensor0 = &vref;
 		volt-sensor1 = &vbat;
+		rtc = &rtc;
 	};
 };
 
@@ -119,5 +120,9 @@
 	//pinctrl-0 = <&uart1_default>;
 	//pinctrl-names = "default";
 	current-speed = <1000000>;
+	status = "okay";
+};
+
+&rtc {
 	status = "okay";
 };
