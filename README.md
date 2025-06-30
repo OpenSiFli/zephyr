@@ -1,37 +1,32 @@
 ## Setup Zephyr Env
-follow the https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
-## Create repo:
-- Clone this project to <zephyrproject>\modules\hal\sifli, Directory contains all the driver and devicetree provided by SiFli
-- Manually add the sifli module to west.yml
 ```
-index cb31d1022a4..79f156f906d 100644
-@@ -229,6 +229,11 @@ manifest:
-       revision: 7b57b24588797e6e7bf18b6bda168e6b96374264
-       groups:
-         - hal
-+    - name: hal_sifli
-+      path: modules/hal/sifli
-+      revision: main
-+      groups:
-+        - hal
-     - name: hal_silabs
-       revision: 389726f350880238b9a1034f575ffd46c4309827
-       path: modules/hal/silabs
-```
+pip install west
+
+west init -m https://github.com/ck-telecom/zephyr-SiFli.git zephyr_sifli
+
+cd zephyr_sifli
+
+west update
+west zephyr-export
+west packages pip --install
+west sdk install -t arm-zephyr-eabi
+ ```
+see more via https://docs.zephyrproject.org/latest/develop/getting_started/index.html
 
 ## Build with west
 ```
+cd zephyr_sifli # make sure in this directory
+
 west build -b <board> <project>
 ```
 
-Validated project including:
-- zephyr\samples\hello_world
-
 ## Flash
 ```
-west flash
+west flash or
+
+west flash --port <your serial port>
 ```
 
 ## Note:
-- Currently board support em-lb525
+- Currently board only support em-lb525
