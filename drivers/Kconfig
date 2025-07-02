@@ -7,6 +7,7 @@
 menu "Drivers"
 
 rsource "clock_control/Kconfig"
+rsource "entropy/Kconfig"
 rsource "gpio/Kconfig"
 rsource "pinctrl/Kconfig"
 rsource "rtc/Kconfig"

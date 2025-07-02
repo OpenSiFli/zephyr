@@ -1,0 +1,17 @@
+description: Sifli SF32LB True Random Number Generator
+
+compatible: "sifli,sf32lb-rng"
+
+include: base.yaml
+
+properties:
+  reg:
+    description: Register space for the RNG peripheral
+    required: true
+
+  interrupts:
+    required: true
+
+  clocks:
+    description: Clock source for the RNG peripheral
+    required: true

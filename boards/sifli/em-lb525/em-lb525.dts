@@ -19,15 +19,8 @@
 		zephyr,shell-uart = &usart1;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash2;
+		zephyr,entropy = &rng;
 	};
-
-//	leds: leds {
-//		compatible = "gpio-leds";
-//		green_led_2: led_2 {
-//			gpios = <&gpioa 5 GPIO_ACTIVE_HIGH>;
-//			label = "User LD2";
-//		};
-//	};
 
 	gpio_keys {
 		compatible = "gpio-keys";
@@ -39,7 +32,6 @@
 	};
 
 	aliases {
-		//led0 = &green_led_2;
 		sw0 = &user_button;
 		volt-sensor0 = &vref;
 		volt-sensor1 = &vbat;
@@ -123,5 +115,9 @@
 };
 
 &rtc {
+	status = "okay";
+};
+
+&rng {
 	status = "okay";
 };

@@ -20,7 +20,6 @@
 
 / {
 	chosen {
-		//zephyr,entropy = &rng1;
 		zephyr,flash-controller = &flash2;
 		zephyr,bt-hci = &mbox;
 	};
@@ -340,17 +339,14 @@
 			clocks = <&rcc RCC_CLK_I2C1>;
 			status = "disabled";
 		};
-		//rng1: rng@4000F000 {
-		//	compatible = "sifli,rng";
-		//	reg = <0x4000F000 0x400>;
-		//	interrupts = <80 0>;
-			//clocks = <&rcc SF32LB_CLOCK(AHB2, 18U)>,
-				/* Following domain clock setting requires MSI
-				 * clock to be enabled with msi-range = <11>;
-				 */
-            //<&rcc SF32LB_SRC_MSI CLK48_SEL(3)>;
-		//	status = "disabled";
-		//};
+
+		rng: rng@5000f000 {
+			compatible = "sifli,sf32lb-rng";
+			reg = <0x5000f000 0x400>;
+			clocks = <&rcc RCC_CLK_TRNG>;
+			interrupts = <69 1>;
+			status = "disabled";
+		};
 
 		//pmuc: power@5004A000 {
 		//	compatible = "sifli,pmuc";
