@@ -27,6 +27,13 @@ struct rtc_sf32lb_config {
 	void (*irq_config_func)(const struct device *dev);
 };
 
+struct rtc_sf32lb_alarm_cb {
+	rtc_alarm_callback cb;
+	void *user_data;
+};
+
+static struct rtc_sf32lb_alarm_cb alarm_cb_data;
+
 static int rtc_sf32lb_set_time(const struct device *dev, const struct rtc_time *time)
 {
 	struct rtc_sf32lb_data *data = dev->data;
@@ -128,9 +135,125 @@ static int rtc_sf32lb_init(const struct device *dev)
 	return 0;
 }
 
+static void rtc_irq_handler(const struct device *dev)
+{
+	struct rtc_sf32lb_data *data = dev->data;
+
+	HAL_RTC_IRQHandler(&data->hrtc);
+}
+
+#ifdef CONFIG_RTC_ALARM
+static void rtc_sf32lb_hal_callback(int reason)
+{
+	if (reason == RTC_CBK_ALARM && alarm_cb_data.cb) {
+		alarm_cb_data.cb(NULL, 0, alarm_cb_data.user_data);
+	}
+}
+
+static int rtc_sf32lb_alarm_get_supported_fields(const struct device *dev, uint16_t id, uint16_t *mask)
+{
+	ARG_UNUSED(dev);
+
+	if (id != 0 || mask == NULL)
+		return -EINVAL;
+
+	*mask = RTC_ALARM_TIME_MASK_HOUR |
+		    RTC_ALARM_TIME_MASK_MINUTE |
+		    RTC_ALARM_TIME_MASK_SECOND;
+
+	return 0;
+}
+
+static int rtc_sf32lb_alarm_set_time(const struct device *dev, uint16_t id, uint16_t mask, const struct rtc_time *timeptr)
+{
+	struct rtc_sf32lb_data *data = dev->data;
+	RTC_AlarmTypeDef alarm = {0};
+
+	if (id != 0)
+		return -EINVAL;
+
+	if (mask == 0 || timeptr == NULL)
+		return -EINVAL;
+
+	/* Only support hour, min, sec */
+	alarm.AlarmTime.Hours = timeptr->tm_hour;
+	alarm.AlarmTime.Minutes = timeptr->tm_min;
+	alarm.AlarmTime.Seconds = timeptr->tm_sec;
+	alarm.AlarmTime.TimeFormat = RTC_HOURFORMAT_24;
+	// Mask day/month/weekday, only match h/m/s
+	alarm.AlarmMask = RTC_ALRMDR_MSKD | RTC_ALRMDR_MSKM | RTC_ALRMDR_MSKWD;
+	// Subsecond mask: match to 1/1024s (10 << RTC_ALRMDR_MSKSS_Pos)
+	alarm.AlarmMask |= (10 << 24); // If RTC_ALRMDR_MSKSS_Pos = 24
+
+	if (mask & (RTC_ALARM_TIME_MASK_HOUR | RTC_ALARM_TIME_MASK_MINUTE | RTC_ALARM_TIME_MASK_SECOND)) {
+		if (HAL_RTC_SetAlarm(&data->hrtc, &alarm, RTC_FORMAT_BIN) != HAL_OK) {
+			return -EIO;
+		}
+	} else {
+		// Disable alarm
+		if (HAL_RTC_DeactivateAlarm(&data->hrtc) != HAL_OK) {
+			return -EIO;
+		}
+	}
+
+	return 0;
+}
+
+static int rtc_sf32lb_alarm_get_time(const struct device *dev, uint16_t id, uint16_t *mask, struct rtc_time *timeptr)
+{
+	struct rtc_sf32lb_data *data = dev->data;
+	RTC_AlarmTypeDef alarm = {0};
+
+	if (id != 0 || mask == NULL || timeptr == NULL)
+		return -EINVAL;
+
+	if (HAL_RTC_GetAlarm(&data->hrtc, &alarm, RTC_FORMAT_BIN) != HAL_OK) {
+		return -EIO;
+	}
+
+	timeptr->tm_hour = alarm.AlarmTime.Hours;
+	timeptr->tm_min = alarm.AlarmTime.Minutes;
+	timeptr->tm_sec = alarm.AlarmTime.Seconds;
+	*mask = RTC_ALARM_TIME_MASK_HOUR | RTC_ALARM_TIME_MASK_MINUTE | RTC_ALARM_TIME_MASK_SECOND;
+
+	return 0;
+}
+
+static int rtc_sf32lb_alarm_is_pending(const struct device *dev, uint16_t id)
+{
+	ARG_UNUSED(dev);
+
+	if (id != 0)
+		return -EINVAL;
+	/*  Not directly supported, always return 0 (not pending) */
+	return 0;
+}
+
+static int rtc_sf32lb_alarm_set_callback(const struct device *dev, uint16_t id, rtc_alarm_callback callback, void *user_data)
+{
+	struct rtc_sf32lb_data *data = dev->data;
+
+	if (id != 0)
+		return -EINVAL;
+
+	alarm_cb_data.cb = callback;
+	alarm_cb_data.user_data = user_data;
+	HAL_RTC_RegCallback(&data->hrtc, rtc_sf32lb_hal_callback);
+
+	return 0;
+}
+#endif /* CONFIG_RTC_ALARM */
+
 static const struct rtc_driver_api rtc_sf32lb_driver_api = {
 	.set_time = rtc_sf32lb_set_time,
 	.get_time = rtc_sf32lb_get_time,
+#ifdef CONFIG_RTC_ALARM
+	.alarm_get_supported_fields = rtc_sf32lb_alarm_get_supported_fields,
+	.alarm_set_time = rtc_sf32lb_alarm_set_time,
+	.alarm_get_time = rtc_sf32lb_alarm_get_time,
+	.alarm_is_pending = rtc_sf32lb_alarm_is_pending,
+	.alarm_set_callback = rtc_sf32lb_alarm_set_callback,
+#endif
 };
 
 #define RTC_SF32LB_INIT(n) \
@@ -152,7 +275,7 @@ static const struct rtc_driver_api rtc_sf32lb_driver_api = {
 	{ \
 		IRQ_CONNECT(DT_INST_IRQN(n), \
 			DT_INST_IRQ(n, priority), \
-			HAL_RTC_IRQHandler, \
+			rtc_irq_handler, \
 			DEVICE_DT_INST_GET(n), \
 			0); \
 		irq_enable(DT_INST_IRQN(n)); \
