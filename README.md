@@ -3,7 +3,7 @@
 ```
 pip install west
 
-west init -m https://github.com/ck-telecom/zephyr-SiFli.git zephyr_sifli
+west init -m https://github.com/OpenSiFli/zephyr.git zephyr_sifli
 
 cd zephyr_sifli
 
@@ -16,16 +16,20 @@ see more via https://docs.zephyrproject.org/latest/develop/getting_started/index
 
 ## Build with west
 ```
-cd zephyr_sifli # make sure in this directory
+cd zephyr # make sure in this directory
 
 west build -b <board> <project>
+```
+eg
+```
+west build -p auto -b em-lb525 samples/hello_world
 ```
 
 ## Flash
 ```
 west flash or
 
-west flash --port <your serial port>
+west flash --port <your serial port> # COM3 in windows for example
 ```
 
 ## Note:
