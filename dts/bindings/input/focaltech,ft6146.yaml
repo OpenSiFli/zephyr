@@ -1,0 +1,20 @@
+description: FocalTech FT6146 capacitive touch controller
+
+compatible: "focaltech,ft6146"
+
+include: i2c-device.yaml
+
+properties:
+  reg:
+    required: true
+    description: I2C address of the FT6146 (typically 0x38)
+
+  int-gpios:
+    type: phandle-array
+    required: false
+    description: Interrupt GPIO specification, active low
+
+  reset-gpios:
+    type: phandle-array
+    required: false
+    description: Reset GPIO specification, active low
