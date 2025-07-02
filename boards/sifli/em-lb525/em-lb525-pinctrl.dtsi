@@ -9,4 +9,11 @@
 			pinmux = <SF32LB_PINMUX(PIN_PAD_PA20, FUNC_PA20_I2C_UART)>;
 		};
 	};
+
+	i2c0_default: i2c0_default {
+		group1 {
+			pinmux = <SF32LB_PINMUX(PIN_PAD_PA33, FUNC_PA33_I2C_UART)>,
+			         <SF32LB_PINMUX(PIN_PAD_PA30, FUNC_PA30_I2C_UART)>;
+		};
+	};
 };
