@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+
+description: Sifli SF32LB I2C controller
+
+compatible: "sifli,sf32lb-i2c"
+
+include: [i2c-controller.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  clock-frequency:
+    required: true
+    description: Desired I2C bus clock frequency in Hz.
+
+  #interrupts:
+  #  required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true

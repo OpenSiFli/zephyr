@@ -203,15 +203,39 @@
 			reg = <0x50003000 0x400>;
 			status = "okay";
 		};
-
-		gpioa: gpio-controller@500a0000 {
-			compatible = "sifli,sf32lb-gpio";
-			gpio-controller;
+		gpio: gpio {
+			compatible = "simple-bus";
+			gpio-map-mask = <0xffffffe0 0xffffffc0>;
+			gpio-map-pass-thru = <0x1f 0x3f>;
+			gpio-map = <0x00 0x0 &gpioa 0x0 0x0
+				    0x20 0x0 &gpiob 0x0 0x0
+			>;
 			#gpio-cells = <2>;
-			reg = <0x500a0000 0x2000>;
-			clocks = <&rcc RCC_CLK_GPIO1>;
-			interrupts = <84 0>;
-			status = "disabled";
+			#address-cells = <1>;
+			#size-cells = <1>;
+			ranges;
+
+			gpioa: gpio@500a0000 {
+				compatible = "sifli,sf32lb-gpio";
+				gpio-controller;
+				#gpio-cells = <2>;
+				reg = <0x500a0000 0x80>;
+				clocks = <&rcc RCC_CLK_GPIO1>;
+				interrupts = <84 0>;
+				ngpios = <32>; /* PA00 ~ PA31 */
+				status = "disabled";
+			};
+
+			gpiob: gpio@500a0080 {
+				compatible = "sifli,sf32lb-gpio";
+				gpio-controller;
+				#gpio-cells = <2>;
+				reg = <0x500a0080 0x80>;
+				clocks = <&rcc RCC_CLK_GPIO1>;
+				interrupts = <86 0>;
+				ngpios = <13>; /* SF32lb52x */
+				status = "disabled";
+			};
 		};
 
 		wdt1: watchdog@50094000 {
@@ -332,7 +356,7 @@
         };
 
 		i2c0: i2c@5009c000 {
-			compatible = "sifli,i2c";
+			compatible = "sifli,sf32lb-i2c";
 			reg = <0x5009c000 0x1000>;
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -340,6 +364,37 @@
 			clocks = <&rcc RCC_CLK_I2C1>;
 			status = "disabled";
 		};
+
+		i2c1: i2c@5009d000 {
+			compatible = "sifli,sf32lb-i2c";
+			reg = <0x5009d000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			clocks = <&rcc RCC_CLK_I2C2>;
+			status = "disabled";
+		};
+
+		i2c2: i2c@5009e000 {
+			compatible = "sifli,sf32lb-i2c";
+			reg = <0x5009e000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			clocks = <&rcc RCC_CLK_I2C3>;
+			status = "disabled";
+		};
+
+		i2c3: i2c@5009f000 {
+			compatible = "sifli,sf32lb-i2c";
+			reg = <0x5009f000 0x1000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			clock-frequency = <I2C_BITRATE_STANDARD>;
+			clocks = <&rcc RCC_CLK_I2C4>;
+			status = "disabled";
+		};
+
 		//rng1: rng@4000F000 {
 		//	compatible = "sifli,rng";
 		//	reg = <0x4000F000 0x400>;
