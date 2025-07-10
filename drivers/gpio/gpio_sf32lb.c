@@ -19,12 +19,13 @@
 LOG_MODULE_REGISTER(gpio_sf32lb, CONFIG_GPIO_LOG_LEVEL);
 
 struct gpio_sf32lb_config {
-	gpio_pin_t port_pin_count;
+	struct gpio_driver_config common;
 	GPIO_TypeDef *reg_base;
 	uint8_t irq_num;
 	uint8_t irq_priority;
 	const struct device *clock_dev;
 	const clock_control_subsys_t clock_subsys;
+	const int port;
 	void (*irq_cfg_func)(void);
 };
 
@@ -41,13 +42,19 @@ static void gpio_sf32lb_isr(const struct device *dev)
 {
 	const struct gpio_sf32lb_config *config = dev->config;
 	struct gpio_sf32lb_data *data = dev->data;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
+	const int port_pin_mask = config->common.port_pin_mask;
 	uint32_t int_status;
 
-	/* Get pending interrupts */
-	int_status = config->reg_base->ISR;
+    if (!(config->reg_base == hwp_gpio1)) {
+        int_status = gpiox->ISR_EXT;
 
-	/* Clear pending interrupts */
-	config->reg_base->ISR |= int_status;
+        gpiox->ISR_EXT |= int_status;
+    } else {
+		int_status = gpiox->ISR;
+
+		gpiox->ISR |= int_status;
+	}
 
 	/* Call the user callback */
 	gpio_fire_callbacks(&data->cb, dev, int_status);
@@ -57,13 +64,17 @@ static int gpio_sf32lb_configure(const struct device *dev, gpio_pin_t pin, gpio_
 {
 	const struct gpio_sf32lb_config *config = dev->config;
 	GPIO_InitTypeDef GPIO_Init;
+	uint32_t io_pin = pin + ((config->port == 1 && pin < 32) ? 32 : 0);
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
+	const int port_pin_mask = config->common.port_pin_mask;
+	GPIO_Init.Pin = io_pin;
+	GPIO_Init.Pull = GPIO_NOPULL;
 
-	if (pin >= config->port_pin_count) {
+	if ((port_pin_mask & BIT(pin)) == 0) {
 		return -EINVAL;
 	}
 
-	GPIO_Init.Pin = pin;
-	GPIO_Init.Pull = GPIO_NOPULL;
+	HAL_PIN_Set(PAD_PA00 + io_pin, GPIO_A0 + io_pin, PIN_NOPULL, 1);
 
 	if ((flags & GPIO_OUTPUT) && !(flags & GPIO_INPUT)) {
 		GPIO_Init.Mode = GPIO_MODE_OUTPUT;
@@ -74,7 +85,7 @@ static int gpio_sf32lb_configure(const struct device *dev, gpio_pin_t pin, gpio_
 		} else {
 			GPIO_Init.Pull = GPIO_NOPULL;
 		}
-		HAL_GPIO_Init(config->reg_base, &GPIO_Init);
+		HAL_GPIO_Init(gpiox, &GPIO_Init);
 	} else if ((flags & GPIO_INPUT) && !(flags & GPIO_OUTPUT)) {
 		GPIO_Init.Mode = GPIO_MODE_INPUT;
 
@@ -85,7 +96,7 @@ static int gpio_sf32lb_configure(const struct device *dev, gpio_pin_t pin, gpio_
 		} else {
 			GPIO_Init.Pull = GPIO_NOPULL;
 		}
-		HAL_GPIO_Init(config->reg_base, &GPIO_Init);
+		HAL_GPIO_Init(gpiox, &GPIO_Init);
 	} else {
 		return -ENOTSUP;
 	}
@@ -96,8 +107,9 @@ static int gpio_sf32lb_configure(const struct device *dev, gpio_pin_t pin, gpio_
 static int gpio_sf32lb_port_get_raw(const struct device *dev, gpio_port_value_t *value)
 {
 	const struct gpio_sf32lb_config *config = dev->config;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
 
-	*value = config->reg_base->DOR;
+	*value = gpiox->DOR;
 
 	return 0;
 }
@@ -106,11 +118,12 @@ static int gpio_sf32lb_port_set_masked_raw(const struct device *dev, uint32_t ma
 {
 	const struct gpio_sf32lb_config *config = dev->config;
 	struct gpio_sf32lb_data *data = dev->data;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
 
 	k_mutex_lock(&data->lock, K_FOREVER);
 
 	data->pin_state = (data->pin_state & ~mask) | (value & mask);
-	config->reg_base->DOR = data->pin_state;
+	gpiox->DOR = data->pin_state;
 
 	k_mutex_unlock(&data->lock);
 
@@ -120,8 +133,9 @@ static int gpio_sf32lb_port_set_masked_raw(const struct device *dev, uint32_t ma
 static int gpio_sf32lb_port_set_bits_raw(const struct device *dev, uint32_t mask)
 {
 	const struct gpio_sf32lb_config *config = dev->config;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
 
-	config->reg_base->DOSR = mask;
+	gpiox->DOSR = mask;
 
 	return 0;
 }
@@ -129,8 +143,9 @@ static int gpio_sf32lb_port_set_bits_raw(const struct device *dev, uint32_t mask
 static int gpio_sf32lb_port_clear_bits_raw(const struct device *dev, uint32_t mask)
 {
 	const struct gpio_sf32lb_config *config = dev->config;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
 
-	config->reg_base->DOCR = mask;
+	gpiox->DOCR = mask;
 
 	return 0;
 }
@@ -139,10 +154,12 @@ static int gpio_sf32lb_port_toggle_bits(const struct device *dev, uint32_t mask)
 {
 	const struct gpio_sf32lb_config *config = dev->config;
 	struct gpio_sf32lb_data *data = dev->data;
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
+	const int port_pin_mask = config->common.port_pin_mask;
 
 	k_mutex_lock(&data->lock, K_FOREVER);
-	data->pin_state ^= mask;
-	HAL_GPIO_TogglePin(config->reg_base, mask);
+	data->pin_state ^= mask;//TODO: remove
+	gpiox->DOR = mask;
 	k_mutex_unlock(&data->lock);
 
 	return 0;
@@ -153,14 +170,24 @@ static int gpio_sf32lb_pin_interrupt_configure(const struct device *dev, gpio_pi
 {
 	const struct gpio_sf32lb_config *config = dev->config;
 	struct gpio_sf32lb_data *data = dev->data;
+	uint32_t io_pin = pin + ((config->port == 1 && pin < 32) ? 32 : 0);
+	GPIO_TypeDef *gpiox = config->reg_base + config->port;
+	const int port_pin_mask = config->common.port_pin_mask;
 	GPIO_InitTypeDef GPIO_Init;
-	GPIO_Init.Pin = pin;
+	GPIO_Init.Pin = io_pin;
 	GPIO_Init.Pull = GPIO_NOPULL;
 
-	/* Disable interrupt for the pin first */
-	config->reg_base->IECR = BIT(pin);
-	data->pin_callback_enables &= ~BIT(pin);
+	if ((port_pin_mask & BIT(pin)) == 0) {
+		return -EINVAL;
+	}
 
+	/* Disable interrupt for the pin first */
+	if (config->reg_base == hwp_gpio1) {
+		gpiox->IECR = BIT(pin);
+	} else {
+		gpiox->IECR_EXT = BIT(pin);
+	}
+	data->pin_callback_enables &= ~BIT(pin);
 	switch (mode) {
 	case GPIO_INT_MODE_DISABLED:
 		break;
@@ -171,9 +198,13 @@ static int gpio_sf32lb_pin_interrupt_configure(const struct device *dev, gpio_pi
 		} else if (trig == GPIO_INT_TRIG_HIGH) {
 			GPIO_Init.Mode = GPIO_MODE_IT_HIGH_LEVEL;
 		}
-		HAL_GPIO_Init(config->reg_base, &GPIO_Init);
+		HAL_GPIO_Init(gpiox, &GPIO_Init);
 
-		config->reg_base->IESR = BIT(pin);
+		if (config->reg_base == hwp_gpio1) {
+			gpiox->IESR = BIT(pin);
+		} else {
+			gpiox->IESR_EXT = BIT(pin);
+		}
 		data->pin_callback_enables |= BIT(pin);
 		break;
 
@@ -185,9 +216,13 @@ static int gpio_sf32lb_pin_interrupt_configure(const struct device *dev, gpio_pi
 		} else if (trig == GPIO_INT_TRIG_BOTH) {
 			GPIO_Init.Mode = GPIO_MODE_IT_RISING_FALLING;
 		}
-		HAL_GPIO_Init(config->reg_base, &GPIO_Init);
+		HAL_GPIO_Init(gpiox, &GPIO_Init);
 
-		config->reg_base->IESR = BIT(pin);
+		if (config->reg_base == hwp_gpio1) {
+			gpiox->IESR = BIT(pin);
+		} else {
+			gpiox->IESR_EXT = BIT(pin);
+		}
 		data->pin_callback_enables |= BIT(pin);
 		break;
 	default:
@@ -234,20 +269,24 @@ static int gpio_sf32lb_init(const struct device *dev)
 	};                                                                                         \
                                                                                                    \
 	static void gpio_sf32lb_irq_config_##n(void);                                              \
-	                                                                                           \
+                                                                                                   \
 	static const struct gpio_sf32lb_config gpio_sf32lb_config_##n = {                          \
-		.port_pin_count = DT_INST_PROP(n, ngpios),                                         \
-		.reg_base = (GPIO_TypeDef *)DT_INST_REG_ADDR(n),                                   \
+		.common =                                                                          \
+			{                                                                          \
+				.port_pin_mask = GPIO_PORT_PIN_MASK_FROM_DT_INST(n),               \
+			},                                                                         \
+		.reg_base = (GPIO_TypeDef *)DT_REG_ADDR(DT_NODELABEL(gpioa)),                      \
 		.irq_num = DT_INST_IRQN(n),                                                        \
 		.irq_priority = DT_INST_IRQ(n, priority),                                          \
 		.clock_dev = DEVICE_DT_GET(DT_INST_CLOCKS_CTLR(n)),                                \
 		.clock_subsys = (clock_control_subsys_t)DT_INST_CLOCKS_CELL(n, id),                \
+		.port = n,                                                                         \
 		.irq_cfg_func = gpio_sf32lb_irq_config_##n,                                        \
 	};                                                                                         \
 	static void gpio_sf32lb_irq_config_##n(void)                                               \
 	{                                                                                          \
-		IRQ_CONNECT(DT_INST_IRQN(n), DT_INST_IRQ(n, priority),                             \
-			   gpio_sf32lb_isr, DEVICE_DT_INST_GET(n), 0);                             \
+		IRQ_CONNECT(DT_INST_IRQN(n), DT_INST_IRQ(n, priority), gpio_sf32lb_isr,            \
+			    DEVICE_DT_INST_GET(n), 0);                                             \
 		irq_enable(DT_INST_IRQN(n));                                                       \
 	}                                                                                          \
 	DEVICE_DT_INST_DEFINE(n, gpio_sf32lb_init, NULL, &gpio_sf32lb_data_##n,                    \

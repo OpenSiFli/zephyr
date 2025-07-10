@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2025 SiFli Technologies(Nanjing) Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+
+config I2C_SF32LB
+	bool "SF32LB I2C instance"
+	default y
+	depends on DT_HAS_SIFLI_SF32LB_I2C_ENABLED
+	help
+	  Enable I2C instance on SF32LB chips.
